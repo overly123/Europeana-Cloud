@@ -27,6 +27,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String FINISH_TIME = "finish_time";
     public static final String SENT_TIME = "sent_time";
     public static final String PROCESSED_FILES_COUNT = "processed_files_count";
+    public static final String RETRY_COUNT = "retry_count";
     public static final String ERRORS = "errors";
     public static final String TASK_INFORMATIONS = "task_informations";
 
@@ -99,5 +100,6 @@ public class CassandraTablesAndColumnsNames {
     public static final String PROCESSED_RECORDS_START_TIME = "start_time";
     public static final String PROCESSED_RECORDS_INFO_TEXT = "info_text";
     public static final String PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS = "additional_informations";
+
 
 }

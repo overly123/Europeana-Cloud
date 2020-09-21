@@ -240,6 +240,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
         List<Integer> emitRecordToPerform(String streamId, DpsRecord message, ProcessedRecord record, EcloudSpoutMessageId compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
             TaskInfo taskInfo = getTaskInfo(message.getTaskId());
+            updateRetryCount(taskInfo, record);
             StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message, record);
             LOGGER.info("Emitting record to the subsequent bolt: {}", message);
             return super.emit(streamId, stormTaskTuple.toStormTuple(), compositeMessageId);
@@ -304,6 +305,16 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             stormTaskTuple.setRecordAttemptNumber(record.getAttemptNumber());
 
             return stormTaskTuple;
+        }
+
+        private void updateRetryCount(TaskInfo taskInfo, ProcessedRecord record) {
+            if (record.getAttemptNumber() > 1) {
+                LOGGER.info("Task {} record {} is repeated - {} attempt!", taskInfo.getId(), record.getRecordId(), record.getAttemptNumber());
+                int retryCount = taskInfo.getRetryCount();
+                retryCount++;
+                taskInfo.setRetryCount(retryCount);
+                taskStatusUpdater.updateRetryCount(taskInfo.getId(), retryCount);
+            }
         }
 
         private ProcessedRecord prepareRecordForExecution(DpsRecord message) {

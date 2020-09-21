@@ -29,6 +29,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement endTask;
     private PreparedStatement updateProcessedFilesAndErrorCount;
     private PreparedStatement updateProcessedFilesCount;
+    private PreparedStatement updateRetryCount;
     private PreparedStatement updateErrorCount;
     private PreparedStatement finishTask;
     private PreparedStatement updateStatusExpectedSizeStatement;
@@ -60,6 +61,8 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         updateProcessedFilesAndErrorCount.setConsistencyLevel(dbService.getConsistencyLevel());
         updateProcessedFilesCount = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + " = ? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         updateProcessedFilesCount.setConsistencyLevel(dbService.getConsistencyLevel());
+        updateRetryCount = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.RETRY_COUNT + " = ? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        updateRetryCount.setConsistencyLevel(dbService.getConsistencyLevel());
         updateErrorCount = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.ERRORS + " = ? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         updateErrorCount.setConsistencyLevel(dbService.getConsistencyLevel());
         endTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + " = ? , " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
@@ -69,6 +72,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME + ","
                 + CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE + ","
                 + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + ","
+                + CassandraTablesAndColumnsNames.RETRY_COUNT + ","
                 + CassandraTablesAndColumnsNames.STATE + ","
                 + CassandraTablesAndColumnsNames.INFO + ","
                 + CassandraTablesAndColumnsNames.SENT_TIME + ","
@@ -76,7 +80,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.FINISH_TIME + ","
                 + CassandraTablesAndColumnsNames.ERRORS + ","
                 + CassandraTablesAndColumnsNames.TASK_INFORMATIONS +
-                ") VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
         taskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         taskInsertUpdateStateStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE +
@@ -119,13 +123,14 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         );
         task.setExpectedSize(row.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE));
         task.setProcessedElementCount(row.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT));
+        task.setRetryCount(row.getInt(CassandraTablesAndColumnsNames.RETRY_COUNT));
         task.setTaskDefinition(row.getString(CassandraTablesAndColumnsNames.TASK_INFORMATIONS));
         return task;
     }
 
     public void insert(long taskId, String topologyName, int expectedSize, int processedFilesCount, String state, String info, Date sentTime, Date startTime, Date finishTime, int errors, String taskInformations)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(taskInsertStatement.bind(taskId, topologyName, expectedSize, processedFilesCount, state, info, sentTime, startTime, finishTime, errors, taskInformations));
+        dbService.getSession().execute(taskInsertStatement.bind(taskId, topologyName, expectedSize, processedFilesCount, 0, state, info, sentTime, startTime, finishTime, errors, taskInformations));
     }
 
     public void updateTask(long taskId, String info, String state, Date startDate)
@@ -161,6 +166,11 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     public void updateProcessedFilesCount(long taskId, int processedFilesCount)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateProcessedFilesCount.bind(processedFilesCount, taskId));
+    }
+
+    public void updateRetryCount(long taskId, int retryCount)
+            throws NoHostAvailableException, QueryExecutionException {
+        dbService.getSession().execute(updateRetryCount.bind(retryCount, taskId));
     }
 
     public void updateErrorCount(long taskId, int errors)

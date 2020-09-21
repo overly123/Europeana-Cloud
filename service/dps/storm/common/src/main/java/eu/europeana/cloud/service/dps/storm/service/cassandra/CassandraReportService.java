@@ -81,6 +81,7 @@ public class CassandraReportService implements TaskExecutionReportService {
                     basicInfo.getString(CassandraTablesAndColumnsNames.INFO),
                     basicInfo.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE),
                     basicInfo.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT),
+                    basicInfo.getInt(CassandraTablesAndColumnsNames.RETRY_COUNT),
                     basicInfo.getInt(CassandraTablesAndColumnsNames.ERRORS),
                     basicInfo.getTimestamp(CassandraTablesAndColumnsNames.SENT_TIME),
                     basicInfo.getTimestamp(CassandraTablesAndColumnsNames.START_TIME),

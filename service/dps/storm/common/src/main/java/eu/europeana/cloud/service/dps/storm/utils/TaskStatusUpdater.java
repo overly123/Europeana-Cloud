@@ -94,6 +94,10 @@ public class TaskStatusUpdater {
         taskInfoDAO.updateProcessedFilesCount(taskId, processedFilesCount);
     }
 
+    public void updateRetryCount(long taskId, int retryCount) {
+        taskInfoDAO.updateRetryCount(taskId, retryCount);
+    }
+
     public void updateErrorCount(long taskId, int errors)
             throws NoHostAvailableException, QueryExecutionException {
         taskInfoDAO.updateErrorCount(taskId, errors);

@@ -37,7 +37,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
 
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
-    protected static final String AUTHORIZATION = "Authorization";
+    public static final String AUTHORIZATION = "Authorization";
 
     // default number of retries
     public static final int DEFAULT_RETRIES = 3;
@@ -70,7 +70,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                 execute(tuple, stormTaskTuple);
             }
         } catch (Exception e) {
-            LOGGER.info("AbstractDpsBolt error: {} \nStackTrace: \n{}", e.getMessage(), e.getStackTrace());
+            LOGGER.warn("AbstractDpsBolt ", e);
             if (stormTaskTuple != null) {
                 StringWriter stack = new StringWriter();
                 e.printStackTrace(new PrintWriter(stack));
@@ -154,14 +154,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                                            String message, String additionalInformation, String resultResource,
                                            long processingStartTime) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
-    }
-
-    protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,String authenticationHeader, String resource,
-                                                      String message, String additionalInformation, String resultResource,
-                                                      long processingStartTime) {
-        NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, dataSetCleanerParameters, dpsURL,authenticationHeader,
                 resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }

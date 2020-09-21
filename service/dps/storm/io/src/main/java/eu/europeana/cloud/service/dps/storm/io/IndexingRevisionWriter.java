@@ -33,9 +33,7 @@ public class IndexingRevisionWriter extends RevisionWriterBolt {
         LOGGER.info("{} executed", getClass().getSimpleName());
         try {
             addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getFileUrl());
-            emitSuccessNotificationForIndexing(anchorTuple, stormTaskTuple.getTaskId(), new Gson().fromJson(stormTaskTuple.getParameter(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class),
-                    stormTaskTuple.getParameter(PluginParameterKeys.DPS_URL),
-                    stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER),
+            emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(),
             stormTaskTuple.getFileUrl(), successNotificationMessage, "", "",
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (MalformedURLException e) {

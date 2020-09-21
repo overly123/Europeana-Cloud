@@ -131,7 +131,6 @@ public class NotificationBolt extends BaseRichBolt {
                 break;
             case NOTIFICATION:
                 notifyTask(notificationTuple, nCache, taskId);
-                storeFinishState(notificationTuple);
                 break;
             default:
                 //nothing to do
@@ -151,10 +150,9 @@ public class NotificationBolt extends BaseRichBolt {
 
         if (error) {
             storeNotificationError(taskId, nCache, notificationTuple);
+            LOGGER.info("Updating task error count for task_id = {} and error counter value: {}", taskId, errors);
+            taskStatusUpdater.updateErrorCount(taskId, errors);
         }
-
-        LOGGER.info("Updating task counter for task_id = {} and counter value: {}", taskId, processesFilesCount);
-        taskStatusUpdater.setUpdateProcessedFiles(taskId, processesFilesCount, errors);
     }
 
     private void storeNotificationError(long taskId, NotificationCache nCache, NotificationTuple notificationTuple) {
@@ -249,19 +247,6 @@ public class NotificationBolt extends BaseRichBolt {
         }
     }
 
-    private void storeFinishState(NotificationTuple notificationTuple) throws TaskInfoDoesNotExistException {
-        long taskId = notificationTuple.getTaskId();
-        TaskInfo task = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-        if (task != null) {
-            NotificationCache nCache = cache.get(taskId);
-            int count = nCache.getProcessed();
-            int expectedSize = task.getExpectedSize();
-            if (count == expectedSize) {
-                endTask(notificationTuple, nCache.getErrors(), count);
-            }
-        }
-    }
-
     private void storeNotification(int resourceNum, long taskId, Map<String, Object> parameters) {
         Validate.notNull(parameters);
         String resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
@@ -319,10 +304,6 @@ public class NotificationBolt extends BaseRichBolt {
             Thread.currentThread().interrupt();
             LOGGER.error(e1.getMessage());
         }
-    }
-
-    protected void endTask(NotificationTuple notificationTuple, int errors, int count) {
-        taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
     }
 
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {

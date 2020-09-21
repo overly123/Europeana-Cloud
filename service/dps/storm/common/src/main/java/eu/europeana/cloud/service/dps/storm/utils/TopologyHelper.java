@@ -107,22 +107,26 @@ public final class TopologyHelper {
 
     public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
 
-        KafkaSpoutConfig.Builder<String, DpsRecord> configBuilder =
-                new KafkaSpoutConfig.Builder(
-                        topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
-                        .setProcessingGuarantee(processingGuarantee)
-                        .setProp(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class)
-                        .setProp(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DpsRecordDeserializer.class)
-                        .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
-                        .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS)
-                        .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_LATEST);
+        KafkaSpoutConfig.Builder<String, DpsRecord> configBuilder = createSpoutKafkaConfig(topologyName, topologyProperties, processingGuarantee);
 
         return new ECloudSpout(
+                topologyName,
                 configBuilder.build(),
                 topologyProperties.getProperty(CASSANDRA_HOSTS),
                 Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                 topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
+    }
+
+    public static KafkaSpoutConfig.Builder<String, DpsRecord> createSpoutKafkaConfig(String topologyName, Properties topologyProperties, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
+        return new KafkaSpoutConfig.Builder<String, DpsRecord>(
+                topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
+                .setProcessingGuarantee(processingGuarantee)
+                .setProp(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class)
+                .setProp(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DpsRecordDeserializer.class)
+                .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
+                .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS)
+                .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_LATEST);
     }
 }

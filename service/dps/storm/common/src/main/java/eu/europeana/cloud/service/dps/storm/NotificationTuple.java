@@ -81,23 +81,6 @@ public class NotificationTuple {
     }
 
 
-    public static NotificationTuple prepareIndexingNotification(long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,
-                                                                String authenticationHeader, String resource, RecordState state, String text,
-                                                                String additionalInformations, String resultResource,
-                                                                long processingStartTime) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put(NotificationParameterKeys.RESOURCE, resource);
-        parameters.put(NotificationParameterKeys.STATE, state.toString());
-        parameters.put(NotificationParameterKeys.INFO_TEXT, text);
-        parameters.put(NotificationParameterKeys.ADDITIONAL_INFORMATIONS, additionalInformations);
-        parameters.put(NotificationParameterKeys.RESULT_RESOURCE, resultResource);
-        parameters.put(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS, dataSetCleanerParameters);
-        parameters.put(NotificationParameterKeys.DPS_URL, dpsURL);
-        parameters.put(NotificationParameterKeys.AUTHORIZATION_HEADER, authenticationHeader);
-        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingStartTime);
-        return new NotificationTuple(taskId, InformationTypes.NOTIFICATION, parameters);
-    }
-
     public long getTaskId() {
         return taskId;
     }

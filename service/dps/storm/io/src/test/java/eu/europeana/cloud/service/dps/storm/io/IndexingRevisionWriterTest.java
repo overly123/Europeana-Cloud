@@ -64,10 +64,6 @@ public class IndexingRevisionWriterTest {
         assertEquals(3, list.size());
         Map<String, String> parameters = (Map<String, String>) list.get(2);
         assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
-        assertNotNull(parameters.get(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS));
-        assertNotNull(parameters.get(NotificationParameterKeys.DPS_URL));
-        assertNotNull(parameters.get(NotificationParameterKeys.AUTHORIZATION_HEADER));
-
     }
 
     @Test
@@ -84,9 +80,6 @@ public class IndexingRevisionWriterTest {
         assertEquals(3, list.size());
         Map<String, String> parameters = (Map<String, String>) list.get(2);
         assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
-        assertNotNull(parameters.get(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS));
-        assertNotNull(parameters.get(NotificationParameterKeys.DPS_URL));
-        assertNotNull(parameters.get(NotificationParameterKeys.AUTHORIZATION_HEADER));
     }
 
     @Test
@@ -144,9 +137,6 @@ public class IndexingRevisionWriterTest {
 
     Map<String, String> prepareTaskParameters() {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS, new Gson().toJson(prepareDataSetCleanerParameters()));
-        parameters.put(PluginParameterKeys.DPS_URL, "DPS_URL");
-        parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return parameters;
     }

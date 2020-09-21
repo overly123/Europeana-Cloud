@@ -27,7 +27,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement updateExpectedSize;
     private PreparedStatement updateTask;
     private PreparedStatement endTask;
-    private PreparedStatement updateProcessedFiles;
+    private PreparedStatement updateProcessedFilesAndErrorCount;
+    private PreparedStatement updateProcessedFilesCount;
+    private PreparedStatement updateErrorCount;
     private PreparedStatement finishTask;
     private PreparedStatement updateStatusExpectedSizeStatement;
 
@@ -54,9 +56,13 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         taskSearchStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         updateTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.START_TIME + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         updateTask.setConsistencyLevel(dbService.getConsistencyLevel());
-        updateProcessedFiles = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + " = ? , " + CassandraTablesAndColumnsNames.ERRORS + " = ? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
-        updateProcessedFiles.setConsistencyLevel(dbService.getConsistencyLevel());
-        endTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + " = ? , " + CassandraTablesAndColumnsNames.ERRORS + " = ? , " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        updateProcessedFilesAndErrorCount = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + " = ? , " + CassandraTablesAndColumnsNames.ERRORS + " = ? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        updateProcessedFilesAndErrorCount.setConsistencyLevel(dbService.getConsistencyLevel());
+        updateProcessedFilesCount = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + " = ? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        updateProcessedFilesCount.setConsistencyLevel(dbService.getConsistencyLevel());
+        updateErrorCount = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.ERRORS + " = ? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        updateErrorCount.setConsistencyLevel(dbService.getConsistencyLevel());
+        endTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + " = ? , " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         endTask.setConsistencyLevel(dbService.getConsistencyLevel());
         taskInsertStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE +
                 "(" + CassandraTablesAndColumnsNames.BASIC_TASK_ID + ","
@@ -142,15 +148,26 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dbService.getSession().execute(updateExpectedSize.bind(expectedSize, taskId));
     }
 
-    public void endTask(long taskId, int processeFilesCount, int errors, String info, String state, Date finishDate)
+    public void endTask(long taskId, int processedFilesCount, String info, String state, Date finishDate)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(endTask.bind(processeFilesCount, errors, String.valueOf(state), finishDate, info, taskId));
+        dbService.getSession().execute(endTask.bind(processedFilesCount, String.valueOf(state), finishDate, info, taskId));
     }
 
-    public void setUpdateProcessedFiles(long taskId, int processedFilesCount, int errors)
+    public void updateProcessedFilesAndErrorCount(long taskId, int processedFilesCount, int errors)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(updateProcessedFiles.bind(processedFilesCount, errors, taskId));
+        dbService.getSession().execute(updateProcessedFilesAndErrorCount.bind(processedFilesCount, errors, taskId));
     }
+
+    public void updateProcessedFilesCount(long taskId, int processedFilesCount)
+            throws NoHostAvailableException, QueryExecutionException {
+        dbService.getSession().execute(updateProcessedFilesCount.bind(processedFilesCount, taskId));
+    }
+
+    public void updateErrorCount(long taskId, int errors)
+            throws NoHostAvailableException, QueryExecutionException {
+        dbService.getSession().execute(updateErrorCount.bind(errors, taskId));
+    }
+
 
     public void updateStatusExpectedSize(long taskId, String state, int expectedSize)
             throws NoHostAvailableException, QueryExecutionException {

@@ -1,8 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
-import com.google.gson.Gson;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
@@ -74,7 +72,6 @@ public class IndexingBolt extends AbstractDpsBolt {
         // Get variables.
         final String useAltEnv = stormTaskTuple
                 .getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);
-        final String datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
         final String database = stormTaskTuple
                 .getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
         final boolean preserveTimestampsString = Boolean
@@ -85,7 +82,6 @@ public class IndexingBolt extends AbstractDpsBolt {
                 : Arrays.asList(datasetIdsToRedirectFrom.trim().split("\\s*,\\s*"));
         final boolean performRedirects = Boolean
                 .parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.PERFORM_REDIRECTS));
-        String dpsURL = indexingProperties.getProperty(PluginParameterKeys.DPS_URL);
         DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
         final Date recordDate;
         try {
@@ -96,7 +92,7 @@ public class IndexingBolt extends AbstractDpsBolt {
             indexerPool
                     .index(document, recordDate, preserveTimestampsString, datasetIdsToRedirectFromList,
                             performRedirects);
-            prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate, dpsURL);
+            stormTaskTuple.setFileData((byte[]) null);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             LOGGER.info(
                     "Indexing bolt executed for: {} (alternative environment: {}, record date: {}, preserve timestamps: {}).",
@@ -109,17 +105,6 @@ public class IndexingBolt extends AbstractDpsBolt {
             logAndEmitError(anchorTuple, e, INDEXING_FILE_ERROR_MESSAGE, stormTaskTuple);
         }
         outputCollector.ack(anchorTuple);
-    }
-
-    private void prepareTuple(StormTaskTuple stormTaskTuple, String useAltEnv, String datasetId,
-                              String database, Date recordDate, String dpsURL) {
-        stormTaskTuple.setFileData((byte[]) null);
-        DataSetCleanerParameters dataSetCleanerParameters = new DataSetCleanerParameters(datasetId,
-                Boolean.parseBoolean(useAltEnv), database, recordDate);
-        stormTaskTuple.addParameter(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS,
-                new Gson().toJson(dataSetCleanerParameters));
-        stormTaskTuple.addParameter(PluginParameterKeys.DPS_URL, dpsURL);
-
     }
 
     private void logAndEmitError(Tuple anchorTuple, Exception e, String errorMessage, StormTaskTuple stormTaskTuple) {

@@ -78,15 +78,25 @@ public class TaskStatusUpdater {
         taskInfoDAO.setUpdateExpectedSize(taskId, expectedSize);
     }
 
-    public void endTask(long taskId, int processeFilesCount, int errors, String info, String state, Date finishDate)
+    public void endTask(long taskId, int processeFilesCount, String info, String state, Date finishDate)
             throws NoHostAvailableException, QueryExecutionException {
         updateTasksByTaskStateTable(taskId, state);
-        taskInfoDAO.endTask(taskId, processeFilesCount, errors, info, state, finishDate);
+        taskInfoDAO.endTask(taskId, processeFilesCount, info, state, finishDate);
     }
 
-    public void setUpdateProcessedFiles(long taskId, int processedFilesCount, int errors)
+    public void updateProcessedFilesAndErrorCount(long taskId, int processedFilesCount, int errors)
             throws NoHostAvailableException, QueryExecutionException {
-        taskInfoDAO.setUpdateProcessedFiles(taskId, processedFilesCount, errors);
+        taskInfoDAO.updateProcessedFilesAndErrorCount(taskId, processedFilesCount, errors);
+    }
+
+    public void updateProcessedFilesCount(long taskId, int processedFilesCount)
+            throws NoHostAvailableException, QueryExecutionException {
+        taskInfoDAO.updateProcessedFilesCount(taskId, processedFilesCount);
+    }
+
+    public void updateErrorCount(long taskId, int errors)
+            throws NoHostAvailableException, QueryExecutionException {
+        taskInfoDAO.updateErrorCount(taskId, errors);
     }
 
     public void updateStatusExpectedSize(long taskId, String state, int expectedSize)

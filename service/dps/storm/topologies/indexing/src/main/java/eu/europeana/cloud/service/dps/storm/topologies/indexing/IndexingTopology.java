@@ -1,12 +1,15 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing;
 
+import eu.europeana.cloud.service.dps.DpsRecord;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.IndexingNotificationBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.IndexingRevisionWriter;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt;
+import eu.europeana.cloud.service.dps.storm.topologies.indexing.spout.IndexingEcloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
@@ -58,6 +61,19 @@ public class IndexingTopology {
                 topologyProperties,
                 KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
 
+        KafkaSpoutConfig.Builder<String, DpsRecord> configBuilder = createSpoutKafkaConfig(TopologiesNames.INDEXING_TOPOLOGY,
+                topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
+
+        new IndexingEcloudSpout(
+                TopologiesNames.INDEXING_TOPOLOGY,
+                configBuilder.build(),
+                topologyProperties.getProperty(CASSANDRA_HOSTS),
+                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                topologyProperties.getProperty(CASSANDRA_USERNAME),
+                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN),
+                indexingProperties.getProperty(PluginParameterKeys.DPS_URL));
+
         builder.setSpout(SPOUT, eCloudSpout,
                 getAnInt(KAFKA_SPOUT_PARALLEL))
                 .setNumTasks(getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS));
@@ -77,7 +93,7 @@ public class IndexingTopology {
                 .setNumTasks(getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS))
                 .customGrouping(INDEXING_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(NOTIFICATION_BOLT, new IndexingNotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+        builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                         getAnInt(CASSANDRA_PORT),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),
